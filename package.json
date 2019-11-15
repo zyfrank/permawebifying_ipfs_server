@@ -1,0 +1,22 @@
+{
+  "name": "permawebifying_ipfs",
+  "version": "0.0.1",
+  "description": "Server for fetch IPFS file by hash and store it in Arweave",
+  "main": "permawebifying_ipfs.js",
+  "dependencies": {
+    "arweave": "^1.4.1",
+    "concat-stream": "^2.0.0",
+    "ipfs": "^0.39.0",
+    "yargs": "^14.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "run": "node permawebifying_ipfs --wallet-file PATH_TO_WALLET.json"
+  },
+  "keywords": [
+    "arweave",
+    "ipfs"
+  ],
+  "author": "frank",
+  "license": "GPL-2.0-only"
+}
