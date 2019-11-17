@@ -4,14 +4,21 @@
   "description": "Server for fetch IPFS file by hash and store it in Arweave",
   "main": "permawebifying_ipfs.js",
   "dependencies": {
+    "arql-ops": "^1.0.0",
     "arweave": "^1.4.1",
     "concat-stream": "^2.0.0",
     "ipfs": "^0.39.0",
+    "path": "^0.12.7",
     "yargs": "^14.2.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "copy-webpack-plugin": "^5.0.5",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
+  },
   "scripts": {
-    "run": "node permawebifying_ipfs --wallet-file PATH_TO_WALLET.json"
+	"build": "webpack",
+    "start": "node permawebifying_ipfs --wallet-file ./arweave-keyfile-xpm-wo9_bvhvIKUwhhKNnvW3WTrb63ed5GL41Okd17A.json"
   },
   "keywords": [
     "arweave",

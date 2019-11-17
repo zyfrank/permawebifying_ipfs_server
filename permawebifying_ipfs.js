@@ -6,6 +6,7 @@
 const http = require('http')
 const fs = require('fs')
 const Arweave = require('arweave/node')
+const  {  equals }  = require('arql-ops')
 const argv = require('yargs').argv
 const IPFS = require('ipfs')
 
@@ -15,7 +16,7 @@ const arweave_host = argv.arweaveHost ? argv.arweaveHost : 'arweave.net'
 const arweave_protocol = argv.arweaveProtocol ? argv.arweaveProtocol : 'https'
 
 // Set hooverd parameters.
-const port = argv.port ? argv.port : 80
+const port = argv.port ? argv.port : 1080
 
 if(!argv.walletFile) {
     console.log("ERROR: Please specify a wallet file to load using argument " +
@@ -25,7 +26,7 @@ if(!argv.walletFile) {
 
 const raw_wallet = fs.readFileSync(argv.walletFile);
 const wallet = JSON.parse(raw_wallet);
-
+let node;
 
 const arweave = Arweave.init({
     host: arweave_host, // Hostname or IP address for a Arweave node
@@ -43,13 +44,23 @@ async function handleRequest(request, response) {
 	
 	request.on('end', async function () {
 		console.log("hash is :" + dataString)
-		const node = await IPFS.create()
-		const fileBuffer = await node.cat('QmXgZAUWd8yo4tvjBETqzUy3wLx5YRzuDwUQnBwRGrAmAo')
-			
-		let tx = await arweave.createTransaction({ data: fileBuffer }, wallet)
-		tx.addTag("IPFS-Add", dataString)
+
+		// check if some transactions already contain this IPFS hash
+		const query = equals('IPFS-Add', dataString)
+	    const txIds =  await arweave.arql(query)
+		if (txIds != undefined && txIds != null && txIds.length > 0){
+			console.log(`Transaction(s) ${txIds} already contain IPFS {dataString}`)
+			let output = `{existedIds:[${txIds}]}`
+	        response.end(output + "\n")
+		}else{
+		    const fileBuffer = await node.cat(dataString)
+		    console.log("fileBuffer:" + fileBuffer)
 		
-		dispatchTX(tx, res)
+		    let tx = await arweave.createTransaction({ data: fileBuffer }, wallet)
+		    tx.addTag("IPFS-Add", dataString)
+		
+		    dispatchTX(tx, response)
+		}
 
 	})
 	
@@ -64,10 +75,9 @@ async function dispatchTX(tx, response) {
     await arweave.transactions.sign(tx, wallet)
     let resp = await arweave.transactions.post(tx);
     response.statusCode = resp.status
-
-    let output = `Transaction ${tx.get('id')} dispatched to ` +
-        `${arweave_host}:${arweave_port} with response: ${resp.status}.`
-    console.log(output)
+	let output = `{newID:${tx.get('id')}}`
+    console.log(`Transaction ${tx.get('id')} dispatched to ` +
+	`${arweave_host}:${arweave_port} with response: ${resp.status}.`)
     response.end(output + "\n")
 }
 
@@ -94,7 +104,8 @@ module.exports = async function startServer() {
         }
 
         console.log("...now ready to hoover data! 🚀🚀🚀\n")
-    })
+	})
+	node = await IPFS.create();
 
 }
 
