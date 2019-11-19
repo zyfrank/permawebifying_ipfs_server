@@ -71,7 +71,7 @@ async function handleRequest(request, response) {
 				await pTimeout(p, 10000);
 			} catch (e) {
 				console.log("IPFS cat timeout")
-				const output = { 'error': "Get IPFS file TimeOut" }
+				const output = { 'error': "Get IPFS file timeout, double check provided hash" }
 				response.end(JSON.stringify(output) + "\n")
 				error = true
 			}
